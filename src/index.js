@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import SeasonDisplay from './SeasonDisplay'
+import SeasonDisplay from './SeasonDisplay';
+import Loader from './Loader';
+import "semantic-ui-css/semantic.min.css"
 
 // FUNCTIONAL COMPONENTS
 
@@ -11,33 +13,55 @@ import SeasonDisplay from './SeasonDisplay'
 // CLASS COMPONENTS
 
 class App extends React.Component {
+      // very first function fucntion called before creation of instance.
      constructor(props) {
        // super is the reference to the parent's constructor of all React.component
        super(props);
-       // ONLY time we do direct assignment
-       this.state = { lat: null, errorMessage: ''};
-       window.navigator.geolocation.getCurrentPosition(
-         position => {
-          // need to call setState to update our state !!
-          console.log(position)
-          this.setState({ lat: position.coords.latitude });
-         },
-         err => {
-          console.log(err)
-          this.setState({errorMessage: err.message})
-         }
+       // ONLY TIME we do direct assignment : state object.
+       this.state = { lat: null, errorMessage: ''}; // put all properties you want in the assignment 
+      } 
+
+      // Alternative method only write on line code
+      // Babel handles the code to adapt it (constructor etc..)
+      state = { lat: null, errorMessage: ''}
+
+      // Lifecycle methods
+
+      // Good place to data loading ! prefer than the constructor => more clear code
+      componentDidMount() {
+        console.log('my component was rerendered to the screen')
+        window.navigator.geolocation.getCurrentPosition(
+         position => this.setState({ lat: position.coords.latitude }), // need to call setState to update our state !
+         err => this.setState({errorMessage: err.message})
       );
-     }
-     // React says we have to define render
-     render() {
+      }
+      // Good place to more data loading when state/props change
+      componentDidUpdate() {
+        console.log('my component was just updated - it rerendered')
+      }
+      // Good place to do cleanup (remove component from the screen) (escpecially non react stuff)
+      componentWillUnmount() { 
+      }
+     
+     
+
+     renderContent() { // Allow to avoid conditionnal render. same style for all conditional statements
        if (this.state.errorMessage && !this.state.lat) {
           return <div>Error: {this.state.errorMessage}</div>
        } else if (this.state.lat && !this.state.errorMessage) {
-          return <div>Latitude: {this.state.lat}</div>
+          return <SeasonDisplay lat={this.state.lat} />// this is a props
        } else {
-          return <div>Loading</div>
+          return <Loader message="Please accept location request to use the App" />
        }
+     }
 
+     // React says we have to define render which return some amount of JSX (not doing anything else)
+     render() {
+       return (
+         <div className='specific-style-for-render'>
+           {this.renderContent()}
+         </div>
+       )
      }
 }
 
